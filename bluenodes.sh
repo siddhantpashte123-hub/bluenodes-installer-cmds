@@ -2,7 +2,7 @@
 
 # Root check
 if [ "$EUID" -ne 0 ]; then
-    echo "❌ Root se chalao: sudo bash bluenodes.sh"
+    echo -e "\e[31m❌ Root se chalao: sudo bash bluenodes.sh\e[0m"
     exit 1
 fi
 
@@ -14,11 +14,16 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 clear
+
+# Bada Text (FIGlet style)
 echo -e "${CYAN}"
-echo "=================================="
-echo "          BLUENODES               "
-echo "=================================="
+echo "  ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
+echo " | __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
+echo " |  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ "
+echo " | |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |"
+echo " |____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
 echo -e "${NC}"
+echo -e "${GREEN}=======================================================${NC}"
 echo -e "${GREEN}1${NC}. INSTALLER"
 echo -e "${GREEN}2${NC}. EXIT"
 echo ""
