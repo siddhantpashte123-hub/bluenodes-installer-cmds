@@ -7,41 +7,41 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Colors
-BLUE='\033[0;34m'
-LIGHT_BLUE='\033[1;34m'
-CYAN='\033[0;36m'
-GREEN='\033[0;32m'
-RED='\033[0;31m'
+RED='\033[1;31m'
+GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Main Menu Function
 show_main_menu() {
     clear
-    # Big BLUENODES ASCII Text
-    echo -e "${BLUE}"
-    echo " ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
-    echo "| __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
-    echo "|  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ "
-    echo "| |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |"
-    echo "|____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
+    
+    # Big Red Text (BLUENODES)
+    echo -e "${RED}"
+    echo "  ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
+    echo " | __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
+    echo " |  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ "
+    echo " | |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |"
+    echo " |____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
     echo -e "${NC}"
     
-    # Made By BLUE
+    # Red Lines & Made By
     echo -e "${RED}=======================================================${NC}"
     echo -e "${CYAN}                     Made By BLUE                      ${NC}"
     echo -e "${RED}=======================================================${NC}"
     
-    # Menu Options (Jishnu style)
-    echo -e "  ${LIGHT_BLUE}---- MAIN MENU ----${NC}"
-    echo -e "${YELLOW}A)${NC} Basic Installer"
+    # Menu Options
+    echo -e "  ${RED}---- MAIN MENU ----${NC}"
+    echo -e "${YELLOW}A)${NC} Installer"
     echo -e "${YELLOW}B)${NC} Pannel"
     echo -e "${YELLOW}C)${NC} Exit"
     echo -e "${RED}-------------------------------------------------------${NC}"
     echo ""
     read -p "Select -> " option
 
-    # Convert lowercase to uppercase for easy input
+    # Convert to uppercase if user types lowercase
     option=$(echo "$option" | tr '[:lower:]' '[:upper:]')
 
     case $option in
@@ -56,14 +56,14 @@ show_main_menu() {
 run_installer() {
     clear
     echo -e "${BLUE}=======================================================${NC}"
-    echo -e "${LIGHT_BLUE}            BLUENODES INSTALLATION STARTED               ${NC}"
+    echo -e "${CYAN}            BLUENODES INSTALLATION STARTED               ${NC}"
     echo -e "${BLUE}=======================================================${NC}"
     echo ""
 
-    echo -e "${CYAN}[*] Updating system, please wait...${NC}"
+    echo -e "${YELLOW}[*] Updating system, please wait...${NC}"
     apt update -y > /dev/null 2>&1 && apt upgrade -y > /dev/null 2>&1
 
-    echo -e "${CYAN}[*] Installing essential packages...${NC}"
+    echo -e "${YELLOW}[*] Installing essential packages...${NC}"
     apt install -y neofetch curl wget git htop ufw nano > /dev/null 2>&1
 
     echo ""
@@ -82,11 +82,11 @@ run_installer() {
 # Panel Menu Function
 show_panel_menu() {
     clear
-    echo -e "${BLUE}=======================================================${NC}"
-    echo -e "${LIGHT_BLUE}                 PANNEL INSTALLER                        ${NC}"
-    echo -e "${BLUE}=======================================================${NC}"
+    echo -e "${RED}=======================================================${NC}"
+    echo -e "${CYAN}                 PANNEL INSTALLER                        ${NC}"
+    echo -e "${RED}=======================================================${NC}"
     echo ""
-    echo -e "  ${LIGHT_BLUE}---- PANEL MENU ----${NC}"
+    echo -e "  ${RED}---- PANEL MENU ----${NC}"
     echo -e "${YELLOW}A)${NC} Install JTG Pannel"
     echo -e "${YELLOW}B)${NC} Back to Main Menu"
     echo -e "${RED}-------------------------------------------------------${NC}"
@@ -118,5 +118,5 @@ show_panel_menu() {
     esac
 }
 
-# Start the script by showing the main menu
+# Start the script
 show_main_menu
