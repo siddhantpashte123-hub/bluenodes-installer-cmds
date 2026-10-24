@@ -18,26 +18,37 @@ NC='\033[0m' # No Color
 # Main Menu Function
 show_main_menu() {
     clear
+    # Big BLUENODES ASCII Text
     echo -e "${BLUE}"
-    echo "  ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
-    echo " | __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
-    echo " |  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ "
-    echo " | |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |"
-    echo " |____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
+    echo " ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
+    echo "| __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
+    echo "|  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ "
+    echo "| |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |"
+    echo "|____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
     echo -e "${NC}"
-    echo -e "${LIGHT_BLUE}=======================================================${NC}"
-    echo -e "${CYAN}1${NC}. Installer (Basic Setup)"
-    echo -e "${CYAN}2${NC}. Pannel (Game/App Panels)"
-    echo -e "${CYAN}3${NC}. Exit"
-    echo -e "${LIGHT_BLUE}=======================================================${NC}"
+    
+    # Made By BLUE
+    echo -e "${RED}=======================================================${NC}"
+    echo -e "${CYAN}                     Made By BLUE                      ${NC}"
+    echo -e "${RED}=======================================================${NC}"
+    
+    # Menu Options (Jishnu style)
+    echo -e "  ${LIGHT_BLUE}---- MAIN MENU ----${NC}"
+    echo -e "${YELLOW}A)${NC} Basic Installer"
+    echo -e "${YELLOW}B)${NC} Pannel"
+    echo -e "${YELLOW}C)${NC} Exit"
+    echo -e "${RED}-------------------------------------------------------${NC}"
     echo ""
-    read -p "Select an option (1/2/3): " option
+    read -p "Select -> " option
+
+    # Convert lowercase to uppercase for easy input
+    option=$(echo "$option" | tr '[:lower:]' '[:upper:]')
 
     case $option in
-        1) run_installer ;;
-        2) show_panel_menu ;;
-        3) echo -e "${RED}Exiting...${NC}"; exit 0 ;;
-        *) echo -e "${RED}Invalid option! Please enter 1, 2 or 3.${NC}"; sleep 2; show_main_menu ;;
+        A) run_installer ;;
+        B) show_panel_menu ;;
+        C) echo -e "${RED}Exiting...${NC}"; exit 0 ;;
+        *) echo -e "${RED}Invalid option! Please enter A, B or C.${NC}"; sleep 2; show_main_menu ;;
     esac
 }
 
@@ -75,13 +86,17 @@ show_panel_menu() {
     echo -e "${LIGHT_BLUE}                 PANNEL INSTALLER                        ${NC}"
     echo -e "${BLUE}=======================================================${NC}"
     echo ""
-    echo -e "${CYAN}1${NC}. Install JTG Pannel"
-    echo -e "${CYAN}2${NC}. Back to Main Menu"
+    echo -e "  ${LIGHT_BLUE}---- PANEL MENU ----${NC}"
+    echo -e "${YELLOW}A)${NC} Install JTG Pannel"
+    echo -e "${YELLOW}B)${NC} Back to Main Menu"
+    echo -e "${RED}-------------------------------------------------------${NC}"
     echo ""
-    read -p "Select a panel (1/2): " panel_option
+    read -p "Select -> " panel_option
+
+    panel_option=$(echo "$panel_option" | tr '[:lower:]' '[:upper:]')
 
     case $panel_option in
-        1)
+        A)
             clear
             echo -e "${YELLOW}[*] Installing JTG Pannel... Please wait.${NC}"
             echo ""
@@ -92,11 +107,11 @@ show_panel_menu() {
             read -p "Press Enter to return to Main Menu..."
             show_main_menu
             ;;
-        2)
+        B)
             show_main_menu
             ;;
         *)
-            echo -e "${RED}Invalid option! Please enter 1 or 2.${NC}"
+            echo -e "${RED}Invalid option! Please enter A or B.${NC}"
             sleep 2
             show_panel_menu
             ;;
