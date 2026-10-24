@@ -2,7 +2,7 @@
 
 # Root check
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\e[31m❌ Root se chalao: sudo bash bn.sh\e[0m"
+    echo -e "\e[31m❌ Please run as root: sudo bash bn.sh\e[0m"
     exit 1
 fi
 
@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 clear
 
-# Bada Text
+# Big Text
 echo -e "${BLUE}"
 echo "  ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
 echo " | __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
@@ -28,41 +28,41 @@ echo -e "${LIGHT_BLUE}=======================================================${N
 echo -e "${CYAN}1${NC}. INSTALLER"
 echo -e "${CYAN}2${NC}. EXIT"
 echo ""
-read -p "Apna option chuno (1/2): " option
+read -p "Select an option (1/2): " option
 
 case $option in
     1)
         clear
         echo -e "${BLUE}=======================================================${NC}"
-        echo -e "${LIGHT_BLUE}          BLUENODES INSTALLATION SHURU                    ${NC}"
+        echo -e "${LIGHT_BLUE}            BLUENODES INSTALLATION STARTED               ${NC}"
         echo -e "${BLUE}=======================================================${NC}"
         echo ""
 
         # System update (Hiding output)
-        echo -e "${CYAN}[*] System update ho raha hai, kripya pratiksha karein...${NC}"
+        echo -e "${CYAN}[*] Updating system, please wait...${NC}"
         apt update -y > /dev/null 2>&1 && apt upgrade -y > /dev/null 2>&1
 
         # Packages install (Hiding output)
-        echo -e "${CYAN}[*] Zaroori packages install ho rahe hain...${NC}"
+        echo -e "${CYAN}[*] Installing essential packages...${NC}"
         apt install -y neofetch curl wget git htop ufw nano > /dev/null 2>&1
 
         echo ""
-        echo -e "${GREEN}✓ Sab kuch successfully install ho gaya!${NC}"
+        echo -e "${GREEN}✓ All packages installed successfully!${NC}"
         echo -e "${BLUE}=======================================================${NC}"
         echo ""
         
-        # System info dikhane ke liye
-        echo -e "${CYAN}Yeh raha aapke system ki jaankari:${NC}"
+        # Display System Info
+        echo -e "${CYAN}Here is your system information:${NC}"
         sleep 1
         neofetch
         echo ""
         ;;
     2)
-        echo -e "${RED}Exit kar rahe hain...${NC}"
+        echo -e "${RED}Exiting...${NC}"
         exit 0
         ;;
     *)
-        echo -e "${RED}Galat option! Sirf 1 ya 2 daalo.${NC}"
+        echo -e "${RED}Invalid option! Please enter 1 or 2.${NC}"
         exit 1
         ;;
 esac
