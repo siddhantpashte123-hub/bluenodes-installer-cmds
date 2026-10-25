@@ -58,37 +58,37 @@ run_installer() {
     echo -e "${CYAN}            BLUENODES INSTALLATION STARTED               ${NC}"
     echo -e "${BLUE}=======================================================${NC}"
     echo ""
+    
+    export DEBIAN_FRONTEND=noninteractive
 
     # Step 1: Update
-    echo -e "${YELLOW}[*] Fetching details of OS & Updating...${NC}"
-    # Using -o Dpkg to avoid interactive prompts blocking Codespaces
-    export DEBIAN_FRONTEND=noninteractive
+    echo -e "${YELLOW}Updating system... Please wait.${NC}"
     apt-get update -y > /dev/null 2>&1
-    echo -e "${GREEN}✓ APT Update Done!${NC}"
-    
-    echo -e "${YELLOW}[*] Upgrading packages...${NC}"
+    echo -e "${GREEN}✓ apt update complete${NC}"
+    echo ""
+
+    echo -e "${YELLOW}Upgrading system... Please wait.${NC}"
     apt-get upgrade -y -o Dpkg::Options::="--force-confold" > /dev/null 2>&1
-    echo -e "${GREEN}✓ Upgrade Done!${NC}"
+    echo -e "${GREEN}✓ apt upgrade complete${NC}"
     echo ""
 
     # Step 2: Basic Tools
-    echo -e "${YELLOW}[*] Installing basic tools (curl, wget, git, htop, nano, ufw)...${NC}"
+    echo -e "${YELLOW}Installing basic tools (curl, wget, git, htop, nano, ufw)...${NC}"
     apt-get install -y curl wget git htop nano ufw > /dev/null 2>&1
-    echo -e "${GREEN}✓ Basic tools installed successfully!${NC}"
+    echo -e "${GREEN}✓ basic tools install complete${NC}"
     echo ""
 
     # Step 3: Docker
-    echo -e "${YELLOW}[*] Installing Docker...${NC}"
+    echo -e "${YELLOW}Installing Docker... Please wait.${NC}"
     apt-get install -y docker.io > /dev/null 2>&1
-    echo -e "${GREEN}✓ Docker installed successfully!${NC}"
+    echo -e "${GREEN}✓ apt install docker complete${NC}"
     echo ""
 
     # Step 4: System Info Tools
-    echo -e "${YELLOW}[*] Installing System Info Tools (neofetch & fastfetch)...${NC}"
+    echo -e "${YELLOW}Installing System Info Tools (neofetch & fastfetch)...${NC}"
     apt-get install -y neofetch > /dev/null 2>&1
-    # Fastfetch check (sometimes not available in default repo)
     apt-get install -y fastfetch > /dev/null 2>&1
-    echo -e "${GREEN}✓ Fetch tools installed successfully!${NC}"
+    echo -e "${GREEN}✓ fetch tools install complete${NC}"
     echo ""
 
     echo -e "${BLUE}=======================================================${NC}"
@@ -125,11 +125,11 @@ show_panel_menu() {
     case $panel_option in
         A)
             clear
-            echo -e "${YELLOW}[*] Installing JTG Pannel... Please wait.${NC}"
+            echo -e "${YELLOW}Installing JTG Pannel... Please wait.${NC}"
             echo ""
             bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/Jtg/refs/heads/main/install.sh)
             echo ""
-            echo -e "${GREEN}✓ JTG Pannel installation process finished!${NC}"
+            echo -e "${GREEN}✓ JTG Pannel install complete!${NC}"
             read -p "Press Enter to return to Main Menu..."
             show_main_menu
             ;;
