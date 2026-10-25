@@ -61,27 +61,33 @@ run_installer() {
 
     # Step 1: Update
     echo -e "${YELLOW}[*] Fetching details of OS & Updating...${NC}"
-    apt update -y > /dev/null 2>&1 && apt upgrade -y > /dev/null 2>&1
-    echo -e "${GREEN}✓ APT Update & Upgrade Done!${NC}"
+    # Using -o Dpkg to avoid interactive prompts blocking Codespaces
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y > /dev/null 2>&1
+    echo -e "${GREEN}✓ APT Update Done!${NC}"
+    
+    echo -e "${YELLOW}[*] Upgrading packages...${NC}"
+    apt-get upgrade -y -o Dpkg::Options::="--force-confold" > /dev/null 2>&1
+    echo -e "${GREEN}✓ Upgrade Done!${NC}"
     echo ""
 
     # Step 2: Basic Tools
     echo -e "${YELLOW}[*] Installing basic tools (curl, wget, git, htop, nano, ufw)...${NC}"
-    apt install -y curl wget git htop nano ufw > /dev/null 2>&1
+    apt-get install -y curl wget git htop nano ufw > /dev/null 2>&1
     echo -e "${GREEN}✓ Basic tools installed successfully!${NC}"
     echo ""
 
     # Step 3: Docker
     echo -e "${YELLOW}[*] Installing Docker...${NC}"
-    apt install -y docker.io > /dev/null 2>&1
+    apt-get install -y docker.io > /dev/null 2>&1
     echo -e "${GREEN}✓ Docker installed successfully!${NC}"
     echo ""
 
-    # Step 4: System Info Tools (neofetch & fastfetch)
+    # Step 4: System Info Tools
     echo -e "${YELLOW}[*] Installing System Info Tools (neofetch & fastfetch)...${NC}"
-    apt install -y neofetch > /dev/null 2>&1
-    # Fastfetch install (as it might not be in default debian repos)
-    apt install -y fastfetch > /dev/null 2>&1
+    apt-get install -y neofetch > /dev/null 2>&1
+    # Fastfetch check (sometimes not available in default repo)
+    apt-get install -y fastfetch > /dev/null 2>&1
     echo -e "${GREEN}✓ Fetch tools installed successfully!${NC}"
     echo ""
 
@@ -89,7 +95,6 @@ run_installer() {
     echo -e "${CYAN}Here is your system information:${NC}"
     sleep 1
     
-    # Try running fastfetch, if it fails, run neofetch
     if command -v fastfetch &> /dev/null; then
         fastfetch
     else
