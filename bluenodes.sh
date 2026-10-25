@@ -14,15 +14,24 @@ BLUE='\033[1;34m'
 CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
-# Loading Animation Function
-loading_anim() {
+# Spinning Loader Animation Function
+spinner() {
     local text=$1
-    echo -n -e "${YELLOW}${text}${NC}"
-    for i in {1..3}; do
-        echo -n "."
-        sleep 0.4
+    local duration=$2
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local end=$((SECONDS + duration))
+    
+    # Hide cursor
+    tput civis
+    
+    while [ $SECONDS -lt $end ]; do
+        for i in $(seq 0 9); do
+            printf "\r${YELLOW}${spinstr:$i:1} ${text}${NC}   "
+            sleep 0.1
+        done
     done
-    echo ""
+    printf "\r\033[K" # Clear the line
+    tput cnorm # Show cursor
 }
 
 # Main Menu Function
@@ -56,11 +65,11 @@ show_main_menu() {
 
     case $option in
         A) 
-            loading_anim "Loading Installer"
+            spinner "Loading Installer" 2
             run_installer 
             ;;
         B) 
-            loading_anim "Opening Pannel Menu"
+            spinner "Opening Pannel Menu" 2
             show_panel_menu 
             ;;
         C) 
@@ -87,35 +96,33 @@ run_installer() {
     export DEBIAN_FRONTEND=noninteractive
 
     # Step 1: Update
-    loading_anim "Updating system (apt update)"
+    spinner "Updating system (apt update)" 3
     apt-get update -y > /dev/null 2>&1
     echo -e "${GREEN}✓ apt update complete${NC}"
     echo ""
 
-    loading_anim "Upgrading system (apt upgrade)"
+    spinner "Upgrading system (apt upgrade)" 3
     apt-get upgrade -y -o Dpkg::Options::="--force-confold" > /dev/null 2>&1
     echo -e "${GREEN}✓ apt upgrade complete${NC}"
     echo ""
 
     # Step 2: Basic Tools
-    loading_anim "Installing basic tools"
+    spinner "Installing basic tools" 3
     apt-get install -y curl wget git htop nano ufw > /dev/null 2>&1
     echo -e "${GREEN}✓ basic tools install complete${NC}"
     echo ""
 
     # Step 3: Docker
-    loading_anim "Installing Docker"
+    spinner "Installing Docker" 4
     apt-get install -y docker.io > /dev/null 2>&1
     echo -e "${GREEN}✓ apt install docker complete${NC}"
     echo ""
 
-    # Step 4: Neofetch (Force Download Method - 100% Works)
-    loading_anim "Installing Neofetch"
+    # Step 4: Neofetch (Force Download Method)
+    spinner "Installing Neofetch" 3
     
-    # Try normal install first
     apt-get install -y neofetch > /dev/null 2>&1
     
-    # If it fails (like in Codespace), download the script directly to /usr/bin/
     if ! command -v neofetch &> /dev/null; then
         curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch
         chmod +x /usr/bin/neofetch
@@ -126,7 +133,9 @@ run_installer() {
 
     echo -e "${BLUE}=======================================================${NC}"
     echo -e "${CYAN}Here is your system information:${NC}"
-    sleep 1
+    
+    # Matrix-style animation before neofetch
+    spinner "Generating System Report" 2
     
     if command -v neofetch &> /dev/null; then
         neofetch
@@ -158,7 +167,7 @@ show_panel_menu() {
     case $panel_option in
         A)
             clear
-            loading_anim "Preparing JTG Pannel installation"
+            spinner "Preparing JTG Pannel installation" 3
             echo ""
             bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/Jtg/refs/heads/main/install.sh)
             echo ""
@@ -167,7 +176,7 @@ show_panel_menu() {
             show_main_menu
             ;;
         B)
-            loading_anim "Going back"
+            spinner "Going back" 1
             show_main_menu
             ;;
         *)
