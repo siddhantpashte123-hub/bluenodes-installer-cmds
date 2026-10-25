@@ -39,7 +39,6 @@ run_task() {
     if [ $status -eq 0 ]; then
         printf "\r  ${GREEN}✓ %-35s [DONE]${NC}\n" "$task_name"
     else
-        # If it fails in Codespace, show SKIPPED instead of FAILED
         printf "\r  ${YELLOW}➜ %-35s [SKIPPED]${NC}\n" "$task_name"
     fi
 }
@@ -115,8 +114,8 @@ show_panel_menu() {
     echo "  ┌─────────────────────────────────────────────────────┐"
     echo "  │                  PANNEL INSTALLER                   │"
     echo "  ├─────────────────────────────────────────────────────┤"
-    echo "  │${YELLOW}  A)${CYAN} Install JTG Pannel                              │"
-    echo "  │${YELLOW}  B)${CYAN} Back to Main Menu                               │"
+    echo -e "  │${YELLOW}  A)${CYAN} Install JTG Pannel                              │"
+    echo -e "  │${YELLOW}  B)${CYAN} Back to Main Menu                               │"
     echo "  └─────────────────────────────────────────────────────┘"
     echo -e "${NC}"
     echo ""
