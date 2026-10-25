@@ -14,24 +14,34 @@ BLUE='\033[1;34m'
 CYAN='\033[1;36m'
 NC='\033[0m' # No Color
 
-# Spinning Loader Animation Function
-spinner() {
-    local text=$1
-    local duration=$2
+# Premium Task Runner Animation
+run_task() {
+    local task_name=$1
+    local command_to_run=$2
+    
     local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
-    local end=$((SECONDS + duration))
+    local i=0
     
-    # Hide cursor
-    tput civis
+    # Start command in background silently
+    eval "$command_to_run" > /dev/null 2>&1 &
+    local pid=$!
     
-    while [ $SECONDS -lt $end ]; do
-        for i in $(seq 0 9); do
-            printf "\r${YELLOW}${spinstr:$i:1} ${text}${NC}   "
-            sleep 0.1
-        done
+    # Animate while command is running
+    while kill -0 $pid 2>/dev/null; do
+        i=$(( (i+1) % 10 ))
+        printf "\r  ${CYAN}%-45s${NC} [${YELLOW}${spinstr:$i:1}${NC}]" "$task_name"
+        sleep 0.1
     done
-    printf "\r\033[K" # Clear the line
-    tput cnorm # Show cursor
+    
+    # Wait for command to finish and get exit status
+    wait $pid
+    local status=$?
+    
+    if [ $status -eq 0 ]; then
+        printf "\r  ${GREEN}✓ %-45s [DONE]${NC}\n" "$task_name"
+    else
+        printf "\r  ${RED}❌ %-45s [FAILED]${NC}\n" "$task_name"
+    fi
 }
 
 # Main Menu Function
@@ -47,95 +57,49 @@ show_main_menu() {
     echo " |____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
     echo -e "${NC}"
     
-    # Red Lines & Made By
-    echo -e "${RED}=======================================================${NC}"
-    echo -e "${CYAN}                     Made By BLUE                      ${NC}"
-    echo -e "${RED}=======================================================${NC}"
-    
-    # Menu Options
-    echo -e "  ${RED}---- MAIN MENU ----${NC}"
-    echo -e "${YELLOW}A)${NC} Installer"
-    echo -e "${YELLOW}B)${NC} Pannel"
-    echo -e "${YELLOW}C)${NC} Exit"
-    echo -e "${RED}-------------------------------------------------------${NC}"
+    # Boxed Header
+    echo -e "${BLUE}┌─────────────────────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│${CYAN}                     Made By BLUE                      ${BLUE}│${NC}"
+    echo -e "${BLUE}├─────────────────────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${YELLOW}  A)${NC} Installer                                       ${BLUE}│${NC}"
+    echo -e "${BLUE}│${YELLOW}  B)${NC} Pannel                                          ${BLUE}│${NC}"
+    echo -e "${BLUE}│${YELLOW}  C)${NC} Exit                                            ${BLUE}│${NC}"
+    echo -e "${BLUE}└─────────────────────────────────────────────────────┘${NC}"
     echo ""
     read -p "Select -> " option
 
     option=$(echo "$option" | tr '[:lower:]' '[:upper:]')
 
     case $option in
-        A) 
-            spinner "Loading Installer" 2
-            run_installer 
-            ;;
-        B) 
-            spinner "Opening Pannel Menu" 2
-            show_panel_menu 
-            ;;
-        C) 
-            echo -e "${RED}Exiting...${NC}"; 
-            sleep 1;
-            exit 0 
-            ;;
-        *) 
-            echo -e "${RED}Invalid option! Please enter A, B or C.${NC}"; 
-            sleep 2; 
-            show_main_menu 
-            ;;
+        A) run_installer ;;
+        B) show_panel_menu ;;
+        C) echo -e "${RED}Exiting...${NC}"; exit 0 ;;
+        *) echo -e "${RED}Invalid option! Please enter A, B or C.${NC}"; sleep 2; show_main_menu ;;
     esac
 }
 
 # Installer Function
 run_installer() {
     clear
-    echo -e "${BLUE}=======================================================${NC}"
-    echo -e "${CYAN}            BLUENODES INSTALLATION STARTED               ${NC}"
-    echo -e "${BLUE}=======================================================${NC}"
+    echo -e "${CYAN}┌─────────────────────────────────────────────────────┐${NC}"
+    echo -e "${CYAN}│            BLUENODES INSTALLATION STARTED             │${NC}"
+    echo -e "${CYAN}└─────────────────────────────────────────────────────┘${NC}"
     echo ""
     
     export DEBIAN_FRONTEND=noninteractive
 
-    # Step 1: Update
-    spinner "Updating system (apt update)" 3
-    apt-get update -y > /dev/null 2>&1
-    echo -e "${GREEN}✓ apt update complete${NC}"
-    echo ""
-
-    spinner "Upgrading system (apt upgrade)" 3
-    apt-get upgrade -y -o Dpkg::Options::="--force-confold" > /dev/null 2>&1
-    echo -e "${GREEN}✓ apt upgrade complete${NC}"
-    echo ""
-
-    # Step 2: Basic Tools
-    spinner "Installing basic tools" 3
-    apt-get install -y curl wget git htop nano ufw > /dev/null 2>&1
-    echo -e "${GREEN}✓ basic tools install complete${NC}"
-    echo ""
-
-    # Step 3: Docker
-    spinner "Installing Docker" 4
-    apt-get install -y docker.io > /dev/null 2>&1
-    echo -e "${GREEN}✓ apt install docker complete${NC}"
-    echo ""
-
-    # Step 4: Neofetch (Force Download Method)
-    spinner "Installing Neofetch" 3
+    run_task "System Update" "apt-get update -y"
+    run_task "System Upgrade" "apt-get upgrade -y -o Dpkg::Options::=\"--force-confold\""
+    run_task "Installing Basic Tools" "apt-get install -y curl wget git htop nano ufw"
+    run_task "Installing Docker Engine" "apt-get install -y docker.io"
     
-    apt-get install -y neofetch > /dev/null 2>&1
+    # Special handling for Neofetch
+    run_task "Installing Neofetch" "apt-get install -y neofetch || (curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch && chmod +x /usr/bin/neofetch)"
     
-    if ! command -v neofetch &> /dev/null; then
-        curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch
-        chmod +x /usr/bin/neofetch
-    fi
-    
-    echo -e "${GREEN}✓ neofetch install complete${NC}"
     echo ""
-
     echo -e "${BLUE}=======================================================${NC}"
     echo -e "${CYAN}Here is your system information:${NC}"
-    
-    # Matrix-style animation before neofetch
-    spinner "Generating System Report" 2
+    echo ""
     
     if command -v neofetch &> /dev/null; then
         neofetch
@@ -151,14 +115,12 @@ run_installer() {
 # Panel Menu Function
 show_panel_menu() {
     clear
-    echo -e "${RED}=======================================================${NC}"
-    echo -e "${CYAN}                 PANNEL INSTALLER                        ${NC}"
-    echo -e "${RED}=======================================================${NC}"
-    echo ""
-    echo -e "  ${RED}---- PANEL MENU ----${NC}"
-    echo -e "${YELLOW}A)${NC} Install JTG Pannel"
-    echo -e "${YELLOW}B)${NC} Back to Main Menu"
-    echo -e "${RED}-------------------------------------------------------${NC}"
+    echo -e "${CYAN}┌─────────────────────────────────────────────────────┐${NC}"
+    echo -e "${CYAN}│                  PANNEL INSTALLER                     │${NC}"
+    echo -e "${CYAN}├─────────────────────────────────────────────────────┤${NC}"
+    echo -e "${CYAN}│${YELLOW}  A)${NC} Install JTG Pannel                              ${CYAN}│${NC}"
+    echo -e "${CYAN}│${YELLOW}  B)${NC} Back to Main Menu                               ${CYAN}│${NC}"
+    echo -e "${CYAN}└─────────────────────────────────────────────────────┘${NC}"
     echo ""
     read -p "Select -> " panel_option
 
@@ -167,16 +129,19 @@ show_panel_menu() {
     case $panel_option in
         A)
             clear
-            spinner "Preparing JTG Pannel installation" 3
+            echo -e "${CYAN}┌─────────────────────────────────────────────────────┐${NC}"
+            echo -e "${CYAN}│              JTG PANNEL INSTALLATION                  │${NC}"
+            echo -e "${CYAN}└─────────────────────────────────────────────────────┘${NC}"
             echo ""
+            
             bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/Jtg/refs/heads/main/install.sh)
+            
             echo ""
-            echo -e "${GREEN}✓ JTG Pannel install complete!${NC}"
+            echo -e "${GREEN}✓ JTG Pannel install process finished!${NC}"
             read -p "Press Enter to return to Main Menu..."
             show_main_menu
             ;;
         B)
-            spinner "Going back" 1
             show_main_menu
             ;;
         *)
