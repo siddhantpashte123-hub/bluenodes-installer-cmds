@@ -22,11 +22,9 @@ run_task() {
     local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
     local i=0
     
-    # Start command in background
     eval "$command_to_run" > /dev/null 2>&1 &
     local pid=$!
     
-    # Animate while running
     while kill -0 $pid 2>/dev/null; do
         i=$(( (i+1) % 10 ))
         printf "\r  ${CYAN}%-35s${NC} [${YELLOW}${spinstr:$i:1}${NC}]" "$task_name"
@@ -114,17 +112,16 @@ show_panel_menu() {
     echo "  ┌─────────────────────────────────────────────────────┐"
     echo "  │                  PANNEL INSTALLER                   │"
     echo "  ├─────────────────────────────────────────────────────┤"
-    echo -e "${CYAN}  │${YELLOW}  A)${NC} Install JTG Pannel                              ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${YELLOW}  B)${NC} Back to Main Menu                               ${CYAN}│${NC}"
+    echo -e "  │${YELLOW}  1)${NC} JTG Pannel                                      ${CYAN}│"
+    echo -e "  │${YELLOW}  2)${NC} Petro Pannel                                    ${CYAN}│"
+    echo -e "  │${YELLOW}  3)${NC} Back to Main Menu                               ${CYAN}│"
     echo "  └─────────────────────────────────────────────────────┘"
     echo -e "${NC}"
     echo ""
     read -p "  Select -> " panel_option
 
-    panel_option=$(echo "$panel_option" | tr '[:lower:]' '[:upper:]')
-
     case $panel_option in
-        A)
+        1)
             clear
             echo -e "${CYAN}"
             echo "  ┌─────────────────────────────────────────────────────┐"
@@ -139,13 +136,73 @@ show_panel_menu() {
             read -p "  Press Enter to return to Main Menu..."
             show_main_menu
             ;;
-        B)
+        2)
+            show_petro_menu
+            ;;
+        3)
             show_main_menu
             ;;
         *)
-            echo -e "${RED}  Invalid option! Please enter A or B.${NC}"
+            echo -e "${RED}  Invalid option! Please enter 1, 2 or 3.${NC}"
             sleep 2
             show_panel_menu
+            ;;
+    esac
+}
+
+# Petro Panel Sub-Menu Function
+show_petro_menu() {
+    clear
+    echo -e "${CYAN}"
+    echo "  ┌─────────────────────────────────────────────────────┐"
+    echo "  │                  PETRO PANNEL MENU                  │"
+    echo "  ├─────────────────────────────────────────────────────┤"
+    echo -e "  │${YELLOW}  1)${NC} Nobita Cloud                                    ${CYAN}│"
+    echo -e "  │${YELLOW}  2)${NC} JTG Hosting Manager                             ${CYAN}│"
+    echo -e "  │${YELLOW}  3)${NC} Back to Pannel Menu                             ${CYAN}│"
+    echo "  └─────────────────────────────────────────────────────┘"
+    echo -e "${NC}"
+    echo ""
+    read -p "  Select -> " petro_option
+
+    case $petro_option in
+        1)
+            clear
+            echo -e "${CYAN}"
+            echo "  ┌─────────────────────────────────────────────────────┐"
+            echo "  │              NOBITA CLOUD INSTALLATION              │"
+            echo "  └─────────────────────────────────────────────────────┘"
+            echo -e "${NC}"
+            
+            bash <(curl -s https://ptero.nobitahost.in)
+            
+            echo ""
+            echo -e "${GREEN}  ✓ Nobita Cloud install process finished!${NC}"
+            read -p "  Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        2)
+            clear
+            echo -e "${CYAN}"
+            echo "  ┌─────────────────────────────────────────────────────┐"
+            echo "  │           JTG HOSTING MANAGER INSTALLATION          │"
+            echo "  └─────────────────────────────────────────────────────┘"
+            echo -e "${NC}"
+            
+            bash <(curl -s https://ptero.jishnu.site)
+            
+            echo ""
+            echo -e "${GREEN}  ✓ JTG Hosting Manager install process finished!${NC}"
+            read -p "  Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        3)
+            show_panel_menu
+            ;;
+        *)
+            echo -e "${RED}  Invalid option! Please enter 1, 2 or 3.${NC}"
+            sleep 2
+            show_petro_menu
             ;;
     esac
 }
