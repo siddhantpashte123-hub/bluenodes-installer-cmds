@@ -41,7 +41,6 @@ show_main_menu() {
     echo ""
     read -p "Select -> " option
 
-    # Convert to uppercase if user types lowercase
     option=$(echo "$option" | tr '[:lower:]' '[:upper:]')
 
     case $option in
@@ -60,20 +59,43 @@ run_installer() {
     echo -e "${BLUE}=======================================================${NC}"
     echo ""
 
-    echo -e "${YELLOW}[*] Updating system, please wait...${NC}"
+    # Step 1: Update
+    echo -e "${YELLOW}[*] Fetching details of OS & Updating...${NC}"
     apt update -y > /dev/null 2>&1 && apt upgrade -y > /dev/null 2>&1
-
-    echo -e "${YELLOW}[*] Installing essential packages...${NC}"
-    apt install -y neofetch curl wget git htop ufw nano > /dev/null 2>&1
-
+    echo -e "${GREEN}✓ APT Update & Upgrade Done!${NC}"
     echo ""
-    echo -e "${GREEN}✓ All packages installed successfully!${NC}"
+
+    # Step 2: Basic Tools
+    echo -e "${YELLOW}[*] Installing basic tools (curl, wget, git, htop, nano, ufw)...${NC}"
+    apt install -y curl wget git htop nano ufw > /dev/null 2>&1
+    echo -e "${GREEN}✓ Basic tools installed successfully!${NC}"
+    echo ""
+
+    # Step 3: Docker
+    echo -e "${YELLOW}[*] Installing Docker...${NC}"
+    apt install -y docker.io > /dev/null 2>&1
+    echo -e "${GREEN}✓ Docker installed successfully!${NC}"
+    echo ""
+
+    # Step 4: System Info Tools (neofetch & fastfetch)
+    echo -e "${YELLOW}[*] Installing System Info Tools (neofetch & fastfetch)...${NC}"
+    apt install -y neofetch > /dev/null 2>&1
+    # Fastfetch install (as it might not be in default debian repos)
+    apt install -y fastfetch > /dev/null 2>&1
+    echo -e "${GREEN}✓ Fetch tools installed successfully!${NC}"
+    echo ""
+
     echo -e "${BLUE}=======================================================${NC}"
-    echo ""
-    
     echo -e "${CYAN}Here is your system information:${NC}"
     sleep 1
-    neofetch
+    
+    # Try running fastfetch, if it fails, run neofetch
+    if command -v fastfetch &> /dev/null; then
+        fastfetch
+    else
+        neofetch
+    fi
+    
     echo ""
     read -p "Press Enter to return to Main Menu..." 
     show_main_menu
@@ -100,7 +122,6 @@ show_panel_menu() {
             clear
             echo -e "${YELLOW}[*] Installing JTG Pannel... Please wait.${NC}"
             echo ""
-            # Running the JTG Installer command
             bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/Jtg/refs/heads/main/install.sh)
             echo ""
             echo -e "${GREEN}✓ JTG Pannel installation process finished!${NC}"
