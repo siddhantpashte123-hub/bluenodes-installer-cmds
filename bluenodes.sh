@@ -84,18 +84,17 @@ run_installer() {
     echo -e "${GREEN}✓ apt install docker complete${NC}"
     echo ""
 
-    # Step 4: System Info Tools (With proper logic)
+    # Step 4: System Info Tools
     echo -e "${YELLOW}Installing System Info Tools...${NC}"
     
-    # Install neofetch
+    # Try apt install first
     apt-get install -y neofetch > /dev/null 2>&1
     
-    # Check if neofetch installed, else try fastfetch via PPA
+    # IF CODESPACE BLOCKS IT, FORCE INSTALL VIA GITHUB
     if ! command -v neofetch &> /dev/null; then
-        apt-get install -y software-properties-common > /dev/null 2>&1
-        add-apt-repository -y ppa:zhangsongcui3371/fastfetch > /dev/null 2>&1
-        apt-get update -y > /dev/null 2>&1
-        apt-get install -y fastfetch > /dev/null 2>&1
+        echo -e "${YELLOW}Force installing neofetch...${NC}"
+        curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch
+        chmod +x /usr/bin/neofetch
     fi
 
     echo -e "${GREEN}✓ fetch tools install complete${NC}"
@@ -107,11 +106,8 @@ run_installer() {
     
     if command -v neofetch &> /dev/null; then
         neofetch
-    elif command -v fastfetch &> /dev/null; then
-        fastfetch
     else
-        echo -e "${RED}⚠ Neither neofetch nor fastfetch could be installed.${NC}"
-        echo -e "${YELLOW}This might be due to restricted permissions in Codespace. It will work on a real VPS.${NC}"
+        echo -e "${RED}⚠ System info tool could not be installed.${NC}"
     fi
     
     echo ""
