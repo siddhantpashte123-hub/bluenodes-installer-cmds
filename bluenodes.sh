@@ -56,7 +56,7 @@ show_main_menu() {
     echo -e "${BLUE}  │${CYAN}                     Made By BLUE                      ${BLUE}│${NC}"
     echo -e "${BLUE}  ├─────────────────────────────────────────────────────┤${NC}"
     echo -e "${BLUE}  │${YELLOW}  A)${NC} Installer                                       ${BLUE}│${NC}"
-    echo -e "${BLUE}  │${YELLOW}  B)${NC} Pannel                                          ${BLUE}│${NC}"
+    echo -e "${BLUE}  │${YELLOW}  B)${NC} Pannel-installer                                          ${BLUE}│${NC}"
     echo -e "${BLUE}  │${YELLOW}  C)${NC} Exit                                            ${BLUE}│${NC}"
     echo -e "${BLUE}  └─────────────────────────────────────────────────────┘${NC}"
     echo ""
@@ -77,7 +77,7 @@ run_installer() {
     clear
     echo -e "${CYAN}"
     echo "  ┌─────────────────────────────────────────────────────┐"
-    echo "  │           BLUENODES INSTALLATION STARTED            │"
+    echo "  │           BLUENODES MADE BY BLUE                    │"
     echo "  └─────────────────────────────────────────────────────┘"
     echo -e "${NC}"
     
@@ -91,7 +91,7 @@ run_installer() {
     
     echo ""
     echo -e "${BLUE}  ─────────────────────────────────────────────────────${NC}"
-    echo -e "${CYAN}   Here is your system information:${NC}"
+    echo -e "${CYAN}   Here is your system information fetch by bluenodes:${NC}"
     echo ""
     
     if command -v neofetch &> /dev/null; then
@@ -113,7 +113,7 @@ show_panel_menu() {
     echo "  │                  PANNEL INSTALLER                   │"
     echo "  ├─────────────────────────────────────────────────────┤"
     echo -e "  │${YELLOW}  1)${NC} JTG Pannel                                      ${CYAN}│"
-    echo -e "  │${YELLOW}  2)${NC} Petro Pannel                                    ${CYAN}│"
+    echo -e "  │${YELLOW}  2)${NC} Petro Pannel ( maintaince)                                    ${CYAN}│"
     echo -e "  │${YELLOW}  3)${NC} Back to Main Menu                               ${CYAN}│"
     echo "  └─────────────────────────────────────────────────────┘"
     echo -e "${NC}"
@@ -157,7 +157,7 @@ show_petro_menu() {
     echo "  ┌─────────────────────────────────────────────────────┐"
     echo "  │                  PETRO PANNEL MENU                  │"
     echo "  ├─────────────────────────────────────────────────────┤"
-    echo -e "  │${YELLOW}  1)${NC} Nobita Cloud                                    ${CYAN}│"
+    echo -e "  │${YELLOW}  1)${NC} Nobita Cloud ( not avaliable )                                   ${CYAN}│"
     echo -e "  │${YELLOW}  2)${NC} JTG Hosting Manager                             ${CYAN}│"
     echo -e "  │${YELLOW}  3)${NC} Back to Pannel Menu                             ${CYAN}│"
     echo "  └─────────────────────────────────────────────────────┘"
