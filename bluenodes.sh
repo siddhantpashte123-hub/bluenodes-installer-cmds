@@ -157,7 +157,7 @@ show_petro_menu() {
     echo "  ┌─────────────────────────────────────────────────────┐"
     echo "  │                  PETRO PANNEL MENU                  │"
     echo "  ├─────────────────────────────────────────────────────┤"
-    echo -e "  │${YELLOW}  1)${NC} Nobita Cloud ( not avaliable )                                   ${CYAN}│"
+    echo -e "  │${YELLOW}  1)${NC} Nobita Cloud ( not avaliable at this current time )                                   ${CYAN}│"
     echo -e "  │${YELLOW}  2)${NC} JTG Hosting Manager                             ${CYAN}│"
     echo -e "  │${YELLOW}  3)${NC} Back to Pannel Menu                             ${CYAN}│"
     echo "  └─────────────────────────────────────────────────────┘"
@@ -185,14 +185,14 @@ show_petro_menu() {
             clear
             echo -e "${CYAN}"
             echo "  ┌─────────────────────────────────────────────────────┐"
-            echo "  │           JTG HOSTING MANAGER INSTALLATION          │"
+            echo "  │           JTG HOSTING MANAGER INSTALLATION  MADE BY JISHNU│"
             echo "  └─────────────────────────────────────────────────────┘"
             echo -e "${NC}"
             
             bash <(curl -s https://ptero.jishnu.site)
             
             echo ""
-            echo -e "${GREEN}  ✓ JTG Hosting Manager install process finished!${NC}"
+            echo -e "${GREEN}  ✓ JTG Hosting Manager install process finished ( BLUENODES )!${NC}"
             read -p "  Press Enter to return to Main Menu..."
             show_main_menu
             ;;
