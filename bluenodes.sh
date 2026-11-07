@@ -97,7 +97,7 @@ run_installer() {
     if command -v neofetch &> /dev/null; then
         neofetch
     else
-        echo -e "${RED}  ⚠ Neofetch could not be installed.${NC}"
+        echo -e "${RED}  ⚠ Neofetch could not be installed (cheak your system or os ).${NC}"
     fi
     
     echo ""
