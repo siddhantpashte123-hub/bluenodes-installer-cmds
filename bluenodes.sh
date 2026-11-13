@@ -1,139 +1,277 @@
 #!/bin/bash
 
+# ==============================================================
+#   BLUENODES INSTALLER  ::  PREMIUM ULTRA EDITION
+#   Made By BLUE
+# ==============================================================
+
 # Root check
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\e[31m❌ Please run as root: sudo bash bn.sh\e[0m"
+    printf "\033[38;5;203m  ✖  Root access required.\033[0m  Run: sudo bash bluenodes.sh\n"
     exit 1
 fi
 
-# Colors
-RED='\033[1;31m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[1;34m'
-CYAN='\033[1;36m'
-NC='\033[0m' # No Color
+export LC_CTYPE=C.UTF-8 2>/dev/null
+export DEBIAN_FRONTEND=noninteractive
 
-# Boxed Task Runner
+# ---------- Premium palette (256-color) ----------
+NC='\033[0m'
+BOLD='\033[1m'
+GOLD='\033[38;5;220m'
+AMBER='\033[38;5;214m'
+CYAN='\033[38;5;51m'
+BLUE='\033[38;5;33m'
+PURPLE='\033[38;5;141m'
+GREEN='\033[38;5;84m'
+RED='\033[38;5;203m'
+WHITE='\033[38;5;255m'
+GREY='\033[38;5;245m'
+BORDER='\033[38;5;39m'
+BADGE_OK='\033[1;30;48;5;84m'
+BADGE_RUN='\033[1;30;48;5;51m'
+BADGE_WARN='\033[1;30;48;5;214m'
+
+WIDTH=60   # inner width of every box
+
+# ---------- Helpers ----------
+# rep <char> <count>  -> repeats a character (safe for count <= 0)
+rep() {
+    local n=$2
+    (( n <= 0 )) && return 0
+    local s
+    printf -v s "%*s" "$n" ""
+    printf '%s' "${s// /$1}"
+}
+
+# Visible length of a string (color codes removed)
+plain_len() {
+    local p
+    p=$(printf '%b' "$1" | sed -E 's/\x1B\[[0-9;]*m//g')
+    printf '%d' "${#p}"
+}
+
+box_top()   { printf "  %b╔%s╗%b\n" "$BORDER" "$(rep '═' $WIDTH)" "$NC"; }
+box_mid()   { printf "  %b╠%s╣%b\n" "$BORDER" "$(rep '═' $WIDTH)" "$NC"; }
+box_bot()   { printf "  %b╚%s╝%b\n" "$BORDER" "$(rep '═' $WIDTH)" "$NC"; }
+box_blank() { printf "  %b║%s║%b\n" "$BORDER" "$(rep ' ' $WIDTH)" "$NC"; }
+
+# Left-aligned row inside the box
+box_row() {
+    local pad=$(( WIDTH - $(plain_len "$1") - 2 ))
+    printf "  %b║%b  %b%s%b║%b\n" "$BORDER" "$NC" "$1" "$(rep ' ' $pad)" "$BORDER" "$NC"
+}
+
+# Centered row inside the box
+box_center() {
+    local total=$(( WIDTH - $(plain_len "$1") ))
+    local left=$(( total / 2 )) right=$(( total - total / 2 ))
+    printf "  %b║%b%s%b%s%b║%b\n" "$BORDER" "$NC" "$(rep ' ' $left)" "$1" "$(rep ' ' $right)" "$BORDER" "$NC"
+}
+
+# Gradient logo (blue -> cyan)
+show_banner() {
+    local colors=(27 33 39 45 51 87)
+    local logo=(
+'  ____  _     _   _ _____ _   _  ___  ____  _____ ____  '
+' | __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| '
+' |  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ '
+' | |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |'
+' |____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ '
+    )
+    local i=0
+    echo ""
+    for line in "${logo[@]}"; do
+        printf "\033[1;38;5;%sm%s\033[0m\n" "${colors[$i]}" "$line"
+        i=$(( i + 1 ))
+    done
+    echo ""
+}
+
+# Status line (root / OS / time)
+status_bar() {
+    local os="Linux"
+    [ -f /etc/os-release ] && os=$(. /etc/os-release && echo "$PRETTY_NAME")
+    printf "  %b◉%b %bROOT%b %s   %b│%b   %b◉%b %bOS%b %s   %b│%b   %b◉%b %bTIME%b %s\n" \
+        "$GREEN" "$NC" "$GREY" "$NC" "OK" \
+        "$GREY" "$NC" "$GREEN" "$NC" "$GREY" "$NC" "$os" \
+        "$GREY" "$NC" "$GREEN" "$NC" "$GREY" "$NC" "$(date '+%d %b %Y, %H:%M')"
+}
+
+# Section header for sub-screens
+show_header() {
+    clear
+    show_banner
+    box_top
+    box_center "${BOLD}${WHITE}$1${NC}"
+    [ -n "$2" ] && box_center "${GREY}$2${NC}"
+    box_bot
+    echo ""
+}
+
+# Prompt (uses printf so color codes render)
+prompt() {
+    printf "  %b❯%b " "$CYAN" "$NC"
+}
+
+# Premium progress bar: progress <done> <total>
+progress() {
+    local cur=$1 tot=$2 w=40
+    local filled=$(( cur * w / tot ))
+    printf "  %bPROGRESS%b  %b%s%b%s  %b%3d%%%b\n" \
+        "$GREY" "$NC" "$GOLD" "$(rep '█' $filled)" "$GREY" "$(rep '░' $(( w - filled )))" \
+        "$GOLD" $(( cur * 100 / tot )) "$NC"
+}
+
+# Boxed Task Runner (animated, premium status badges)
 run_task() {
     local task_name=$1
     local command_to_run=$2
-    
-    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local frames=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
     local i=0
-    
+    local label_w=40
+    local pad=$(( label_w - $(plain_len "$task_name") ))
+    (( pad < 2 )) && pad=2
+    local dots
+    dots=$(rep '·' $pad)
+
     eval "$command_to_run" > /dev/null 2>&1 &
     local pid=$!
-    
-    while kill -0 $pid 2>/dev/null; do
-        i=$(( (i+1) % 10 ))
-        printf "\r  ${CYAN}%-35s${NC} [${YELLOW}${spinstr:$i:1}${NC}]" "$task_name"
+
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r\033[K  %b%s%b  %b%s %s%b %b RUNNING %b" \
+            "$CYAN" "${frames[$i]}" "$NC" \
+            "$WHITE" "$task_name" "$dots" "$NC" \
+            "$BADGE_RUN" "$NC"
+        i=$(( (i + 1) % ${#frames[@]} ))
         sleep 0.1
     done
-    
-    wait $pid
+
+    wait "$pid"
     local status=$?
-    
+
     if [ $status -eq 0 ]; then
-        printf "\r  ${GREEN}✓ %-35s [DONE]${NC}\n" "$task_name"
+        printf "\r\033[K  %b✔%b  %b%s %s%b %b DONE %b\n" \
+            "$GREEN" "$NC" "$WHITE" "$task_name" "$dots" "$NC" "$BADGE_OK" "$NC"
     else
-        printf "\r  ${YELLOW}➜ %-35s [SKIPPED]${NC}\n" "$task_name"
+        printf "\r\033[K  %b➜%b  %b%s %s%b %b SKIPPED %b\n" \
+            "$AMBER" "$NC" "$GREY" "$task_name" "$dots" "$NC" "$BADGE_WARN" "$NC"
     fi
 }
 
-# Main Menu Function
+# Pause screen until Enter
+press_enter() {
+    echo ""
+    printf "  %b↩%b  %s " "$PURPLE" "$NC" "$1"
+    read -r _
+}
+
+# ==============================================================
+# MAIN MENU
+# ==============================================================
 show_main_menu() {
     clear
-    echo -e "${RED}"
-    echo "  ____  _     _   _ _____ _   _  ___  ____  _____ ____  "
-    echo " | __ )| |   | | | | ____| \ | |/ _ \|  _ \| ____/ ___| "
-    echo " |  _ \| |   | | | |  _| |  \| | | | | | | |  _| \___ \ "
-    echo " | |_) | |___| |_| | |___| |\  | |_| | |_| | |___ ___) |"
-    echo " |____/|_____|\___/|_____|_| \_|\___/|____/|_____|____/ "
-    echo -e "${NC}"
-    
-    echo -e "${BLUE}  ┌─────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}  │${CYAN}                     Made By BLUE                      ${BLUE}│${NC}"
-    echo -e "${BLUE}  ├─────────────────────────────────────────────────────┤${NC}"
-    echo -e "${BLUE}  │${YELLOW}  A)${NC} Installer                                       ${BLUE}│${NC}"
-    echo -e "${BLUE}  │${YELLOW}  B)${NC} Pannel-installer                                          ${BLUE}│${NC}"
-    echo -e "${BLUE}  │${YELLOW}  C)${NC} Exit                                            ${BLUE}│${NC}"
-    echo -e "${BLUE}  └─────────────────────────────────────────────────────┘${NC}"
+    show_banner
+    box_top
+    box_center "${BOLD}${WHITE}◆  INSTALLER SUITE  ◆${NC}"
+    box_center "${GREY}Premium Ultra Edition  ·  Made By BLUE${NC}"
+    box_mid
+    box_blank
+    box_row "${GOLD}[A]${NC}  ${BOLD}${WHITE}Installer${NC}"
+    box_row "     ${GREY}System update · Docker · Neofetch · Core tools${NC}"
+    box_blank
+    box_row "${PURPLE}[B]${NC}  ${BOLD}${WHITE}Panel Installer${NC}"
+    box_row "     ${GREY}JTG Panel · Petro Panel suite${NC}"
+    box_blank
+    box_row "${RED}[C]${NC}  ${BOLD}${WHITE}Exit${NC}"
+    box_row "     ${GREY}Close BLUENODES${NC}"
+    box_blank
+    box_bot
     echo ""
-    read -p "  Select -> " option
+    status_bar
+    echo ""
+    prompt
+    read -r option
 
     option=$(echo "$option" | tr '[:lower:]' '[:upper:]')
 
     case $option in
         A) run_installer ;;
         B) show_panel_menu ;;
-        C) echo -e "${RED}  Exiting...${NC}"; exit 0 ;;
-        *) echo -e "${RED}  Invalid option! Please enter A, B or C.${NC}"; sleep 2; show_main_menu ;;
+        C) echo ""; printf "  %b✦ Thank you for using BLUENODES. Goodbye!%b\n\n" "$GOLD" "$NC"; exit 0 ;;
+        *) printf "  %b✖ Invalid option! Please enter A, B or C.%b\n" "$RED" "$NC"; sleep 1.5; show_main_menu ;;
     esac
 }
 
-# Installer Function
+# ==============================================================
+# INSTALLER
+# ==============================================================
 run_installer() {
-    clear
-    echo -e "${CYAN}"
-    echo "  ┌─────────────────────────────────────────────────────┐"
-    echo "  │           BLUENODES MADE BY BLUE                    │"
-    echo "  └─────────────────────────────────────────────────────┘"
-    echo -e "${NC}"
-    
-    export DEBIAN_FRONTEND=noninteractive
+    show_header "BLUENODES INSTALLER" "Premium system setup"
 
+    local total=5 done_steps=0
+
+    progress $done_steps $total
+    echo ""
     run_task "System Update" "apt-get update -y"
+    done_steps=$(( done_steps + 1 )); progress $done_steps $total
+
     run_task "System Upgrade" "apt-get upgrade -y -o Dpkg::Options::=\"--force-confold\""
+    done_steps=$(( done_steps + 1 )); progress $done_steps $total
+
     run_task "Installing Basic Tools" "apt-get install -y curl wget git htop nano ufw"
+    done_steps=$(( done_steps + 1 )); progress $done_steps $total
+
     run_task "Installing Docker Engine" "apt-get install -y docker.io"
+    done_steps=$(( done_steps + 1 )); progress $done_steps $total
+
     run_task "Installing Neofetch" "apt-get install -y neofetch || (curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch && chmod +x /usr/bin/neofetch)"
-    
+    done_steps=$(( done_steps + 1 )); progress $done_steps $total
+
     echo ""
-    echo -e "${BLUE}  ─────────────────────────────────────────────────────${NC}"
-    echo -e "${CYAN}   Here is your system information fetch by bluenodes:${NC}"
+    box_top
+    box_center "${BOLD}${GOLD}SYSTEM INFORMATION${NC}"
+    box_center "${GREY}Fetched by BLUENODES${NC}"
+    box_bot
     echo ""
-    
+
     if command -v neofetch &> /dev/null; then
         neofetch
     else
-        echo -e "${RED}  ⚠ Neofetch could not be installed (cheak your system or os ).${NC}"
+        printf "  %b⚠ Neofetch could not be installed (check your system or OS).%b\n" "$RED" "$NC"
     fi
-    
-    echo ""
-    read -p "  Press Enter to return to Main Menu..." 
+
+    press_enter "Press Enter to return to Main Menu..."
     show_main_menu
 }
 
-# Panel Menu Function
+# ==============================================================
+# PANEL MENU
+# ==============================================================
 show_panel_menu() {
-    clear
-    echo -e "${CYAN}"
-    echo "  ┌─────────────────────────────────────────────────────┐"
-    echo "  │                  PANNEL INSTALLER                   │"
-    echo "  ├─────────────────────────────────────────────────────┤"
-    echo -e "  │${YELLOW}  1)${NC} JTG Pannel                                      ${CYAN}│"
-    echo -e "  │${YELLOW}  2)${NC} Petro Pannel ( maintaince)                                    ${CYAN}│"
-    echo -e "  │${YELLOW}  3)${NC} Back to Main Menu                               ${CYAN}│"
-    echo "  └─────────────────────────────────────────────────────┘"
-    echo -e "${NC}"
+    show_header "PANEL INSTALLER" "Choose a control panel to deploy"
+
+    box_top
+    box_row "${PURPLE}[1]${NC}  ${BOLD}${WHITE}JTG Panel${NC}"
+    box_row "     ${GREY}Full JTG panel deployment${NC}"
+    box_blank
+    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}Petro Panel${NC}  ${AMBER}(maintenance)${NC}"
+    box_row "     ${GREY}Petro hosting suite${NC}"
+    box_blank
+    box_row "${RED}[3]${NC}  ${BOLD}${WHITE}Back to Main Menu${NC}"
+    box_bot
     echo ""
-    read -p "  Select -> " panel_option
+    prompt
+    read -r panel_option
 
     case $panel_option in
         1)
-            clear
-            echo -e "${CYAN}"
-            echo "  ┌─────────────────────────────────────────────────────┐"
-            echo "  │              JTG PANNEL INSTALLATION                │"
-            echo "  └─────────────────────────────────────────────────────┘"
-            echo -e "${NC}"
-            
+            show_header "JTG PANEL INSTALLATION" "Deploying JTG Panel"
+
             bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/Jtg/refs/heads/main/install.sh)
-            
+
             echo ""
-            echo -e "${GREEN}  ✓ JTG Pannel install process finished!${NC}"
-            read -p "  Press Enter to return to Main Menu..."
+            printf "  %b✔ JTG Panel install process finished!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
             show_main_menu
             ;;
         2)
@@ -143,69 +281,65 @@ show_panel_menu() {
             show_main_menu
             ;;
         *)
-            echo -e "${RED}  Invalid option! Please enter 1, 2 or 3.${NC}"
-            sleep 2
+            printf "  %b✖ Invalid option! Please enter 1, 2 or 3.%b\n" "$RED" "$NC"
+            sleep 1.5
             show_panel_menu
             ;;
     esac
 }
 
-# Petro Panel Sub-Menu Function
+# ==============================================================
+# PETRO PANEL SUB-MENU
+# ==============================================================
 show_petro_menu() {
-    clear
-    echo -e "${CYAN}"
-    echo "  ┌─────────────────────────────────────────────────────┐"
-    echo "  │                  PETRO PANNEL MENU                  │"
-    echo "  ├─────────────────────────────────────────────────────┤"
-    echo -e "  │${YELLOW}  1)${NC} Nobita Cloud ( not avaliable at this current time )                                   ${CYAN}│"
-    echo -e "  │${YELLOW}  2)${NC} JTG Hosting Manager                             ${CYAN}│"
-    echo -e "  │${YELLOW}  3)${NC} Back to Pannel Menu                             ${CYAN}│"
-    echo "  └─────────────────────────────────────────────────────┘"
-    echo -e "${NC}"
+    show_header "PETRO PANEL MENU" "Premium hosting managers"
+
+    box_top
+    box_row "${PURPLE}[1]${NC}  ${BOLD}${WHITE}Nobita Cloud${NC}  ${AMBER}(not available at this time)${NC}"
+    box_row "     ${GREY}Nobita hosting panel${NC}"
+    box_blank
+    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}JTG Hosting Manager${NC}"
+    box_row "     ${GREY}Hosting manager by JISHNU${NC}"
+    box_blank
+    box_row "${RED}[3]${NC}  ${BOLD}${WHITE}Back to Panel Menu${NC}"
+    box_bot
     echo ""
-    read -p "  Select -> " petro_option
+    prompt
+    read -r petro_option
 
     case $petro_option in
         1)
-            clear
-            echo -e "${CYAN}"
-            echo "  ┌─────────────────────────────────────────────────────┐"
-            echo "  │              NOBITA CLOUD INSTALLATION              │"
-            echo "  └─────────────────────────────────────────────────────┘"
-            echo -e "${NC}"
-            
+            show_header "NOBITA CLOUD INSTALLATION" "Deploying Nobita Cloud"
+
             bash <(curl -s https://ptero.nobitahost.in)
-            
+
             echo ""
-            echo -e "${GREEN}  ✓ Nobita Cloud install process finished!${NC}"
-            read -p "  Press Enter to return to Main Menu..."
+            printf "  %b✔ Nobita Cloud install process finished!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
             show_main_menu
             ;;
         2)
-            clear
-            echo -e "${CYAN}"
-            echo "  ┌─────────────────────────────────────────────────────┐"
-            echo "  │           JTG HOSTING MANAGER INSTALLATION  MADE BY JISHNU│"
-            echo "  └─────────────────────────────────────────────────────┘"
-            echo -e "${NC}"
-            
+            show_header "JTG HOSTING MANAGER INSTALLATION" "Made by JISHNU"
+
             bash <(curl -s https://ptero.jishnu.site)
-            
+
             echo ""
-            echo -e "${GREEN}  ✓ JTG Hosting Manager install process finished ( BLUENODES )!${NC}"
-            read -p "  Press Enter to return to Main Menu..."
+            printf "  %b✔ JTG Hosting Manager install process finished (BLUENODES)!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
             show_main_menu
             ;;
         3)
             show_panel_menu
             ;;
         *)
-            echo -e "${RED}  Invalid option! Please enter 1, 2 or 3.${NC}"
-            sleep 2
+            printf "  %b✖ Invalid option! Please enter 1, 2 or 3.%b\n" "$RED" "$NC"
+            sleep 1.5
             show_petro_menu
             ;;
     esac
 }
 
-# Start
+# ==============================================================
+# START
+# ==============================================================
 show_main_menu
