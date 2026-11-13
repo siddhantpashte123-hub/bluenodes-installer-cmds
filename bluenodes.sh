@@ -257,7 +257,10 @@ show_panel_menu() {
     box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}Petro Panel${NC}  ${AMBER}(maintenance)${NC}"
     box_row "     ${GREY}Petro hosting suite${NC}"
     box_blank
-    box_row "${RED}[3]${NC}  ${BOLD}${WHITE}Back to Main Menu${NC}"
+    box_row "${PURPLE}[3]${NC}  ${BOLD}${WHITE}BLUEKVM Panel${NC}"
+    box_row "     ${GREY}BLUEKVM panel by BLUE${NC}"
+    box_blank
+    box_row "${RED}[4]${NC}  ${BOLD}${WHITE}Back to Main Menu${NC}"
     box_bot
     echo ""
     prompt
@@ -278,10 +281,20 @@ show_panel_menu() {
             show_petro_menu
             ;;
         3)
+            show_header "BLUEKVM PANEL INSTALLATION" "Made By BLUE"
+
+            bash <(curl -fsSL https://raw.githubusercontent.com/siddhantpashte123-hub/BKUEKVM-/main/installer/install.sh)
+
+            echo ""
+            printf "  %b✔ BLUEKVM Panel install process finished!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        4)
             show_main_menu
             ;;
         *)
-            printf "  %b✖ Invalid option! Please enter 1, 2 or 3.%b\n" "$RED" "$NC"
+            printf "  %b✖ Invalid option! Please enter 1, 2, 3 or 4.%b\n" "$RED" "$NC"
             sleep 1.5
             show_panel_menu
             ;;
