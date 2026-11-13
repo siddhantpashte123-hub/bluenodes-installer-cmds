@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # ==============================================================
-#   BLUENODES ALL-IN-ONE INSTALLER  ::  Made By BLUE
-#   One command. No menus. Installs everything.
+#   BLUENODES INSTALLER  ::  One command, menu driven
+#   Made By BLUE
+#
+#   curl -fsSL https://raw.githubusercontent.com/siddhantpashte123-hub/bluenodes-installer-cmds/main/install.sh | sudo bash
 # ==============================================================
 
 # Root check
@@ -15,6 +17,14 @@ if ! command -v apt-get &> /dev/null; then
     printf "\033[38;5;203m  ✖  This installer needs a Debian/Ubuntu system (apt-get not found).\033[0m\n"
     exit 1
 fi
+
+# When run through "curl | bash", stdin is the script itself.
+# Read user input from the real terminal instead.
+if [ ! -r /dev/tty ]; then
+    printf "\033[38;5;203m  ✖  No terminal available for input. Run this in an interactive shell.\033[0m\n"
+    exit 1
+fi
+TTY=/dev/tty
 
 export LC_CTYPE=C.UTF-8 2>/dev/null
 export DEBIAN_FRONTEND=noninteractive
@@ -53,7 +63,15 @@ plain_len() {
 }
 
 box_top()    { printf "  %b╔%s╗%b\n" "$BORDER" "$(rep '═' $WIDTH)" "$NC"; }
+box_mid()    { printf "  %b╠%s╣%b\n" "$BORDER" "$(rep '═' $WIDTH)" "$NC"; }
 box_bot()    { printf "  %b╚%s╝%b\n" "$BORDER" "$(rep '═' $WIDTH)" "$NC"; }
+box_blank()  { printf "  %b║%s║%b\n" "$BORDER" "$(rep ' ' $WIDTH)" "$NC"; }
+
+box_row() {
+    local pad=$(( WIDTH - $(plain_len "$1") - 2 ))
+    printf "  %b║%b  %b%s%b║%b\n" "$BORDER" "$NC" "$1" "$(rep ' ' $pad)" "$BORDER" "$NC"
+}
+
 box_center() {
     local total=$(( WIDTH - $(plain_len "$1") ))
     local left=$(( total / 2 )) right=$(( total - total / 2 ))
@@ -78,6 +96,28 @@ show_banner() {
     echo ""
 }
 
+show_header() {
+    clear
+    show_banner
+    box_top
+    box_center "${BOLD}${WHITE}$1${NC}"
+    [ -n "$2" ] && box_center "${GREY}$2${NC}"
+    box_bot
+    echo ""
+}
+
+# prompt: shows ❯ and reads from the real terminal
+prompt() {
+    printf "  %b❯%b " "$CYAN" "$NC"
+    read -r "$1" < "$TTY"
+}
+
+press_enter() {
+    echo ""
+    printf "  %b↩%b  %s " "$PURPLE" "$NC" "$1"
+    read -r _ < "$TTY"
+}
+
 progress() {
     local cur=$1 tot=$2 w=40
     local filled=$(( cur * w / tot ))
@@ -86,7 +126,7 @@ progress() {
         "$GOLD" $(( cur * 100 / tot )) "$NC"
 }
 
-# run_task <name> <command>  -> animated, never aborts the whole install
+# run_task <name> <command>  -> animated; returns 1 if the command failed
 run_task() {
     local task_name=$1
     local command_to_run=$2
@@ -122,52 +162,183 @@ run_task() {
 }
 
 # ==============================================================
-# RUN EVERYTHING
+# INSTALLER (option 1)
 # ==============================================================
-clear
-show_banner
-box_top
-box_center "${BOLD}${WHITE}◆  ALL-IN-ONE INSTALLER  ◆${NC}"
-box_center "${GREY}One command · Everything installed · Made By BLUE${NC}"
-box_bot
-echo ""
+run_installer() {
+    show_header "INSTALLER" "Full system setup · Made By BLUE"
 
-TOTAL=5
-DONE_STEPS=0
-FAILED=()
+    local total=5 done_steps=0
+    local failed=()
 
-step() {  # step <name> <command>
-    progress $DONE_STEPS $TOTAL
-    if ! run_task "$1" "$2"; then
-        FAILED+=("$1")
+    step() {  # step <name> <command>
+        progress $done_steps $total
+        if ! run_task "$1" "$2"; then
+            failed+=("$1")
+        fi
+        done_steps=$(( done_steps + 1 ))
+    }
+
+    step "System Update" "apt-get update -y"
+    step "System Upgrade" "apt-get upgrade -y -o Dpkg::Options::=\"--force-confold\""
+    step "Installing Basic Tools" "apt-get install -y curl wget git htop nano ufw"
+    step "Installing Docker Engine" "apt-get install -y docker.io"
+    step "Installing Neofetch" "apt-get install -y neofetch || (curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch && chmod +x /usr/bin/neofetch)"
+    progress $total $total
+    echo ""
+
+    box_top
+    box_center "${BOLD}${GOLD}SYSTEM INFORMATION${NC}"
+    box_center "${GREY}Fetched by BLUENODES${NC}"
+    box_bot
+    echo ""
+
+    if command -v neofetch &> /dev/null; then
+        neofetch
+    else
+        printf "  %b⚠ Neofetch could not be installed (check your system or OS).%b\n" "$RED" "$NC"
     fi
-    DONE_STEPS=$(( DONE_STEPS + 1 ))
+
+    echo ""
+    if [ ${#failed[@]} -eq 0 ]; then
+        printf "  %b✦ Installer finished successfully.%b\n" "$GOLD" "$NC"
+    else
+        printf "  %b⚠ Some tasks were skipped:%b %s\n" "$AMBER" "$NC" "$(IFS=', '; echo "${failed[*]}")"
+    fi
+
+    press_enter "Press Enter to return to Main Menu..."
+    show_main_menu
 }
 
-step "System Update" "apt-get update -y"
-step "System Upgrade" "apt-get upgrade -y -o Dpkg::Options::=\"--force-confold\""
-step "Installing Basic Tools" "apt-get install -y curl wget git htop nano ufw"
-step "Installing Docker Engine" "apt-get install -y docker.io"
-step "Installing Neofetch" "apt-get install -y neofetch || (curl -sL https://raw.githubusercontent.com/dylanaraps/neofetch/master/neofetch -o /usr/bin/neofetch && chmod +x /usr/bin/neofetch)"
-progress $TOTAL $TOTAL
-echo ""
+# ==============================================================
+# PANEL MENU (option 2)
+# ==============================================================
+show_panel_menu() {
+    show_header "PANEL INSTALLER" "Choose a control panel to deploy"
 
-# ---------- Final report ----------
-box_top
-box_center "${BOLD}${GOLD}INSTALLATION COMPLETE${NC}"
-box_center "${GREY}Fetched by BLUENODES${NC}"
-box_bot
-echo ""
+    box_top
+    box_row "${PURPLE}[1]${NC}  ${BOLD}${WHITE}JTG Panel${NC}"
+    box_row "     ${GREY}Full JTG panel deployment${NC}"
+    box_blank
+    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}Petro Panel${NC}"
+    box_row "     ${GREY}Petro hosting suite${NC}"
+    box_blank
+    box_row "${PURPLE}[3]${NC}  ${BOLD}${WHITE}BLUEKVM Panel${NC}"
+    box_row "     ${GREY}BLUEKVM panel by BLUE${NC}"
+    box_blank
+    box_row "${RED}[4]${NC}  ${BOLD}${WHITE}Back to Main Menu${NC}"
+    box_bot
+    echo ""
+    prompt panel_option
 
-if command -v neofetch &> /dev/null; then
-    neofetch
-else
-    printf "  %b⚠ Neofetch could not be installed (check your system or OS).%b\n" "$RED" "$NC"
-fi
+    case $panel_option in
+        1)
+            show_header "JTG PANEL INSTALLATION" "Deploying JTG Panel"
+            bash <(curl -s https://raw.githubusercontent.com/JishnuTheGamer/Jtg/refs/heads/main/install.sh) < "$TTY"
+            echo ""
+            printf "  %b✔ JTG Panel install process finished!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        2)
+            show_petro_menu
+            ;;
+        3)
+            show_header "BLUEKVM PANEL INSTALLATION" "Made By BLUE"
+            bash <(curl -fsSL https://raw.githubusercontent.com/siddhantpashte123-hub/BKUEKVM-/main/installer/install.sh) < "$TTY"
+            echo ""
+            printf "  %b✔ BLUEKVM Panel install process finished!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        4)
+            show_main_menu
+            ;;
+        *)
+            printf "  %b✖ Invalid option! Please enter 1, 2, 3 or 4.%b\n" "$RED" "$NC"
+            sleep 1.5
+            show_panel_menu
+            ;;
+    esac
+}
 
-echo ""
-if [ ${#FAILED[@]} -eq 0 ]; then
-    printf "  %b✦ All tasks finished successfully.%b\n\n" "$GOLD" "$NC"
-else
-    printf "  %b⚠ Some tasks were skipped:%b %s\n\n" "$AMBER" "$NC" "$(IFS=', '; echo "${FAILED[*]}")"
-fi
+# ==============================================================
+# PETRO PANEL SUB-MENU
+# ==============================================================
+show_petro_menu() {
+    show_header "PETRO PANEL MENU" "Premium hosting managers"
+
+    box_top
+    box_row "${PURPLE}[1]${NC}  ${BOLD}${WHITE}Nobita Cloud${NC}  ${AMBER}(not available at this time)${NC}"
+    box_row "     ${GREY}Nobita hosting panel${NC}"
+    box_blank
+    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}JTG Hosting Manager${NC}"
+    box_row "     ${GREY}Hosting manager by JISHNU${NC}"
+    box_blank
+    box_row "${RED}[3]${NC}  ${BOLD}${WHITE}Back to Panel Menu${NC}"
+    box_bot
+    echo ""
+    prompt petro_option
+
+    case $petro_option in
+        1)
+            show_header "NOBITA CLOUD INSTALLATION" "Deploying Nobita Cloud"
+            bash <(curl -s https://ptero.nobitahost.in) < "$TTY"
+            echo ""
+            printf "  %b✔ Nobita Cloud install process finished!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        2)
+            show_header "JTG HOSTING MANAGER INSTALLATION" "Made by JISHNU"
+            bash <(curl -s https://ptero.jishnu.site) < "$TTY"
+            echo ""
+            printf "  %b✔ JTG Hosting Manager install process finished (BLUENODES)!%b\n" "$GREEN" "$NC"
+            press_enter "Press Enter to return to Main Menu..."
+            show_main_menu
+            ;;
+        3)
+            show_panel_menu
+            ;;
+        *)
+            printf "  %b✖ Invalid option! Please enter 1, 2 or 3.%b\n" "$RED" "$NC"
+            sleep 1.5
+            show_petro_menu
+            ;;
+    esac
+}
+
+# ==============================================================
+# MAIN MENU  (1 = Installer, 2 = Panel)
+# ==============================================================
+show_main_menu() {
+    clear
+    show_banner
+    box_top
+    box_center "${BOLD}${WHITE}◆  BLUENODES INSTALLER  ◆${NC}"
+    box_center "${GREY}Premium Edition  ·  Made By BLUE${NC}"
+    box_mid
+    box_blank
+    box_row "${GOLD}[1]${NC}  ${BOLD}${WHITE}Installer${NC}"
+    box_row "     ${GREY}System update · Docker · Neofetch · Core tools${NC}"
+    box_blank
+    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}Panel${NC}"
+    box_row "     ${GREY}JTG · Petro · BLUEKVM panels${NC}"
+    box_blank
+    box_row "${RED}[3]${NC}  ${BOLD}${WHITE}Exit${NC}"
+    box_blank
+    box_bot
+    echo ""
+    prompt main_option
+
+    case $main_option in
+        1) run_installer ;;
+        2) show_panel_menu ;;
+        3) echo ""; printf "  %b✦ Thank you for using BLUENODES. Goodbye!%b\n\n" "$GOLD" "$NC"; exit 0 ;;
+        *) printf "  %b✖ Invalid option! Please enter 1, 2 or 3.%b\n" "$RED" "$NC"; sleep 1.5; show_main_menu ;;
+    esac
+}
+
+# ==============================================================
+# START
+# ==============================================================
+show_main_menu
