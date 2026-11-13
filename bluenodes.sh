@@ -254,7 +254,7 @@ show_panel_menu() {
     box_row "${PURPLE}[1]${NC}  ${BOLD}${WHITE}JTG Panel${NC}"
     box_row "     ${GREY}Full JTG panel deployment${NC}"
     box_blank
-    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}Petro Panel${NC}  ${AMBER}(maintenance)${NC}"
+    box_row "${PURPLE}[2]${NC}  ${BOLD}${WHITE}Petro Panel${NC}"
     box_row "     ${GREY}Petro hosting suite${NC}"
     box_blank
     box_row "${PURPLE}[3]${NC}  ${BOLD}${WHITE}BLUEKVM Panel${NC}"
